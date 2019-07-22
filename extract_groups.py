@@ -1,21 +1,17 @@
 import hou
 
-createGeoNodes = 1
-createMaterials = 1
+createGeoNodes = True
+createMaterials = True
 
 selected = hou.selectedNodes()
 obj = hou.node("/obj")
-shop = hou.node("/shop")
+mat = hou.node("/mat")
+
+if not selected:
+    raise Exception("Nothing is selected")
 
 geo = selected[0].geometry()
 primGroupsInGeo = geo.primGroups()
-
-# Create empty geometry container
-
-def createDummy(name):
-    obj = hou.node("/obj")
-    newGeo = obj.createNode("geo", name)
-    newGeo.children()[0].destroy()
 
 # Find current working directory
 
@@ -41,13 +37,13 @@ for i in range(0,len(primGroupsInGeo)):
     # If active create geo node for each group    
 
     if createGeoNodes:
-        geo = createDummy(group)
+        geo = hou.node("/obj").createNode("geo", group)
         geoPath = geo.path()
         objMerge = hou.node(geoPath).createNode("object_merge")
         objMerge.setParms({"objpath1":null.path(), "xformtype":1})
 
     if createGeoNodes and createMaterials:
-        mantraSurface = hou.galleries.galleryEntries("mantrasurface")[0]
-        material = mantraSurface.createChildNode(shop)
+        principalSurface = hou.galleries.galleryEntries("principledshader")[0]
+        material = principalSurface.createChildNode(mat)
         hou.node(material.path()).setName(group.upper())
-        geo.setParms({"shop_materialpath":"/shop/" + group.upper()})
+        geo.setParms({"shop_materialpath":"/mat/" + group.upper()})
